@@ -9,6 +9,17 @@ const port = 3000
 
 app.get('/user', UserModel.getUsers)
 
+app.get('/outlet', UserModel.getUsers)
+
+
+
+
+
+
+
+
+
+
 app.listen(port, () => {
   console.log(`Gacor bwang ${port}`)
 })
