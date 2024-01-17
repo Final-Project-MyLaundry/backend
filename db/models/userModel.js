@@ -1,3 +1,4 @@
+const { ObjectId } = require("mongodb");
 const { hashPass, comparePass } = require("../../helpers/bcrypt");
 const { generateToken } = require("../../helpers/jwt");
 const { getCollection } = require("../config/configMongo");
@@ -8,9 +9,14 @@ class UserModel {
         return getCollection('users')
     }
 
+    //TODO GET ALL USERS
     static async getUsers(req, res) {
-        const user = await getCollection('users').find().toArray();
-        await res.json(user)
+        try {
+            const user = await getCollection('users').find().toArray();
+            await res.json(user)
+        } catch (error) {
+            res.json({ message: error.message })
+        }
     }
 
     //TODO REGISTER
@@ -47,7 +53,7 @@ class UserModel {
         }
     }
 
-      
+
     //TODO LOGIN
     static async loginUser(req, res) {
         try {
@@ -63,7 +69,7 @@ class UserModel {
 
             const token = generateToken({
                 _id: user._id,
-                email : user.email
+                email: user.email
             })
 
             await res.json({
@@ -75,6 +81,18 @@ class UserModel {
             res.json({ message: error.message })
         }
     }
+
+    //TODO GET USER
+    static async getUserById(req, res) {
+        try {
+            const { id } = req.params
+            const user = await getCollection('users').findOne({ _id: new ObjectId(id) })
+            await res.json(user)
+        } catch (error) {
+            res.json({ message: error.message })
+        }
+    }
+
 }
 
 module.exports = UserModel
