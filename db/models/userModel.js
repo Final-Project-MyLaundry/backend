@@ -92,7 +92,23 @@ class UserModel {
             res.json({ message: error.message })
         }
     }
+    //TODO UPDATE
+    static async updateUser(req, res) {
+        try {
+            await getCollection('users').updateOne({ _id: req.user._id }, {
+                $set: {
+                    ...req.body
+                }
+            })
 
+            await res.json({
+                ...req.body
+            })
+
+        } catch (error) {
+            res.json({ message: error.message })
+        }
+    }
 }
 
 module.exports = UserModel
