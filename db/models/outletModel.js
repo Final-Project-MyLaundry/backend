@@ -11,7 +11,7 @@ module.exports = class OutletModel {
     const data = req.body
     data = {
       ...data,
-      userId : new ObjectId(req.user._id)
+      userId: new ObjectId(req.user._id)
     }
     const addOutlet = await getCollection('outlets').insertOne(data)
     await res.json(addOutlet)
@@ -20,12 +20,12 @@ module.exports = class OutletModel {
   }
   static async editOutlet(req, res) {
     const data = req.body
-    const editOutlet = await getCollection('outlets').replaceOne({_id : new ObjectId(data._id)},data)
+    const editOutlet = await getCollection('outlets').replaceOne({ _id: new ObjectId(data._id) }, data)
     await res.json(editOutlet)
   }
   static async deleteOutlet(req, res) {
     const data = req.body
-    const deleteOutlet = await getCollection('outlets').deleteOne({_id: new ObjectId(data)})
+    const deleteOutlet = await getCollection('outlets').deleteOne({ _id: new ObjectId(data) })
     await res.json(deleteOutlet)
   }
 

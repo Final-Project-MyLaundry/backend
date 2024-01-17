@@ -13,9 +13,9 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true })) 
 
 app.get('/users', UserModel.getUsers)
-app.get('/users/:id', UserModel.getUserById)
 app.post('/users/register', UserModel.registerUser)
 app.post('/users/login', UserModel.loginUser)
+app.get('/users/:id', UserModel.getUserById)
 app.put('/users/:id',authentication, UserModel.updateUser)
 
 
