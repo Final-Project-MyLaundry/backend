@@ -1,13 +1,13 @@
 const { getCollection } = require("../config/configMongo");
 
-class UserModel{
+class UserModel {
 
-    static collection(){
+    static collection() {
         return getCollection('users')
     }
 
 
-    static async getUsers(req, res){
+    static async getUsers(req, res) {
         const user = await getCollection('users').find().toArray();
         await res.json(user)
     }
