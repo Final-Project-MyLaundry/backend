@@ -1,7 +1,7 @@
 const { ObjectId } = require("mongodb");
 const { getCollection } = require("../config/configMongo");
 
-class OutletModel {
+module.exports = class OutletModel {
 
   static async getOutlets(req, res) {
     const outlets = await getCollection('outlets').find().toArray();
@@ -25,8 +25,8 @@ class OutletModel {
   }
   static async deleteOutlet(req, res) {
     const data = req.body
-    const editOutlet = await getCollection('outlets').deleteOne({_id: new ObjectId(data)})
-    await res.json(editOutlet)
+    const deleteOutlet = await getCollection('outlets').deleteOne({_id: new ObjectId(data)})
+    await res.json(deleteOutlet)
   }
 
 }
