@@ -45,7 +45,9 @@ class UserModel {
             await res.json({
                 message: 'success register',
                 _id: result.insertedId,
-                ...user
+                ...user,
+                createdAt: new Date(),
+                updatedAt: new Date()
 
             })
         } catch (error) {
@@ -82,7 +84,7 @@ class UserModel {
         }
     }
 
-    //TODO GET USER
+    //TODO GET USER BY ID
     static async getUserById(req, res) {
         try {
             const { id } = req.params
@@ -92,12 +94,28 @@ class UserModel {
             res.json({ message: error.message })
         }
     }
-    //TODO UPDATE
+    //TODO UPDATE PROFILE
     static async updateUser(req, res) {
         try {
+            if(!req.body.name) throw Error('name is required')
+            
+            if(!req.body.email) throw Error('email is required')
+            
+            if(!req.body.address.street) throw Error('street is required')
+            
+            if(!req.body.address.village) throw Error('village is required')
+            
+            if(!req.body.address.distric) throw Error('distric is required')
+            
+            if(!req.body.address.city) throw Error('city is required')
+            
+            if(!req.body.phone) throw Error('phone is required')
+
             await getCollection('users').updateOne({ _id: req.user._id }, {
                 $set: {
-                    ...req.body
+                    ...req.body,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
                 }
             })
 
