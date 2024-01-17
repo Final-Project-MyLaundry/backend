@@ -12,6 +12,7 @@ app.use(express.urlencoded({ extended: true }))
 
 app.get('/users', UserModel.getUsers)
 app.post('/users/register', UserModel.registerUser)
+app.post('/users/login', UserModel.loginUser)
 
 
 app.get('/outlet', UserModel.getUsers)

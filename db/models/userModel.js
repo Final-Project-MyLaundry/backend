@@ -1,4 +1,4 @@
-const { hashPass } = require("../../helpers/bcrypt");
+const { hashPass, comparePass } = require("../../helpers/bcrypt");
 const { generateToken } = require("../../helpers/jwt");
 const { getCollection } = require("../config/configMongo");
 
@@ -42,6 +42,35 @@ class UserModel {
                 ...user
 
             })
+        } catch (error) {
+            res.json({ message: error.message })
+        }
+    }
+
+      
+    //TODO LOGIN
+    static async loginUser(req, res) {
+        try {
+            const { email, password } = req.body
+            if (!email) throw Error('email is required')
+            if (!password) throw Error('password is required')
+
+            const user = await getCollection('users').findOne({ email })
+            if (!user) throw Error('account not found')
+
+            const checkPass = comparePass(password, user.password)
+            if (!checkPass) throw Error('password not valid')
+
+            const token = generateToken({
+                _id: user._id,
+                email : user.email
+            })
+
+            await res.json({
+                message: 'success login',
+                access_token: token
+            })
+
         } catch (error) {
             res.json({ message: error.message })
         }
