@@ -7,13 +7,21 @@ module.exports = class OrderModel {
 
             if (!data.services?.length == 0) throw Error('services is required')
 
+            inpServices = data.services.map(el => {
+                return {
+                    servicesId: new ObjectId(el),
+                    qty : 0,
+                }
+            })
+
             let input = {
                 ...data,
                 userId: new ObjectId(req.user._id),
-                services : [
-                    ...data.services,
-                ],
                 outletId: new ObjectId(req.params.id),
+                services : [
+                    ...inpServices,
+                ],
+                progress: 'waiting',
                 statusReceive: false,
                 createdAt: new Date(),
                 updatedAt: new Date(),
