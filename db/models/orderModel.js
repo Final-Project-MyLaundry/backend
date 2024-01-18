@@ -1,13 +1,14 @@
 const { ObjectId } = require("mongodb");
+const { getCollection } = require("../config/configMongo");
 
 module.exports = class OrderModel {
     static async postOrder(req, res) {
         try {
             const data = req.body
 
-            if (!data.services?.length == 0) throw Error('services is required')
+            if (data.servicesId?.length == 0) throw Error('services is required')
 
-            inpServices = data.services.map(el => {
+            let inpServices = data.servicesId.map(el => {
                 return {
                     servicesId: new ObjectId(el),
                     qty : 0,
@@ -18,7 +19,7 @@ module.exports = class OrderModel {
                 ...data,
                 userId: new ObjectId(req.user._id),
                 outletId: new ObjectId(req.params.id),
-                services : [
+                servicesId : [
                     ...inpServices,
                 ],
                 progress: 'waiting',
@@ -48,10 +49,42 @@ module.exports = class OrderModel {
 
     static async getByUserOrder(req, res) {
         try {
+            // console.log(req.user._id)
 
-            const data = await getCollection('orders').find({ userId: new ObjectId(req.user.id) }).toArray()
+            const data = (await getCollection('orders').aggregate(
+                [
+                    {
+                        '$match': {
+                        'userId': new ObjectId(req.user._id)
+                      }
+                    }, {
+                      '$lookup': {
+                        'from': 'services', 
+                        'localField': 'servicesId.servicesId', 
+                        'foreignField': '_id', 
+                        'as': 'result'
+                      }
+                    }
+                  ]
+            ).toArray())[0]
 
-            await res.json(data)
+            console.log(data);
+
+            let totalAmount = 0
+            let services = []
+            for (let i = 0; i < data.servicesId.length; i++) {
+                totalAmount += (data.result[i].price * data.servicesId[i].qty)
+                services.push({
+                    name : data.result[i].name,
+                    qty : data.servicesId[i].qty
+                })
+            }
+
+            await res.json({
+                ...data,
+                totalAmount,
+                servicesId: services
+            })
 
         } catch (error) {
             res.json({ message: error.message })
