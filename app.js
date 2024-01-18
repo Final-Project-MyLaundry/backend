@@ -10,6 +10,7 @@ const app = express()
 const port = 3000
 
 const multer  = require('multer')
+const OrderModel = require('./db/models/orderModel')
 const storage = multer.memoryStorage()
 const upload = multer({storage})
 
@@ -25,7 +26,7 @@ app.put('/users/:id',authentication, UserModel.updateUser)
 
 app.use(authentication)
 
-app.get('/outlets', authentication, OutletModel.getOutlets)
+app.get('/outlets', OutletModel.getOutlets)
 
 app.get('/outlets/user', OutletModel.getByUserIdOutlets)
 
@@ -38,6 +39,16 @@ app.put('/outlets', OutletModel.editOutlet)
 app.patch('/outlets',upload.single('image'), OutletModel.patchOutlet)
 
 app.delete('/outlets', OutletModel.deleteOutlet)
+
+app.get('/orders', OrderModel.getByUserOrder)
+
+app.get('/orders/:id', OrderModel.getByIdOrder)
+
+app.post('/orders', OrderModel.postOrder)
+
+app.patch('/orders/:id', OrderModel.postOrder)
+
+
 
 
 
