@@ -23,15 +23,21 @@ app.get('/users/:id', UserModel.getUserById)
 app.put('/users/:id',authentication, UserModel.updateUser)
 
 
-app.get('/outlet', OutletModel.getOutlets)
+app.use(authentication)
 
-app.post('/outlet', OutletModel.addOutlet)
+app.get('/outlets', authentication, OutletModel.getOutlets)
 
-app.put('/outlet', OutletModel.editOutlet)
+app.get('/outlets/user', OutletModel.getByUserIdOutlets)
 
-app.patch('/outlet',upload.single('image'), OutletModel.patchOutlet)
+app.get('/outlets/:id', OutletModel.getByIdOutlets)
 
-app.delete('/outlet', OutletModel.deleteOutlet)
+app.post('/outlets', OutletModel.addOutlet)
+
+app.put('/outlets', OutletModel.editOutlet)
+
+app.patch('/outlets',upload.single('image'), OutletModel.patchOutlet)
+
+app.delete('/outlets', OutletModel.deleteOutlet)
 
 
 
