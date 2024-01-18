@@ -39,6 +39,14 @@ class UserModel {
 
             const result = await getCollection('users').insertOne({
                 ...user,
+                address: {
+                    street: "",
+                    village: "",
+                    distric: "",
+                    city: ""
+                },
+                phone: '',
+                balance: 0,
                 password: hashPass(user.password)
             })
 
@@ -97,19 +105,19 @@ class UserModel {
     //TODO UPDATE PROFILE
     static async updateUser(req, res) {
         try {
-            if(!req.body.name) throw Error('name is required')
-            
-            if(!req.body.email) throw Error('email is required')
-            
-            if(!req.body.address.street) throw Error('street is required')
-            
-            if(!req.body.address.village) throw Error('village is required')
-            
-            if(!req.body.address.distric) throw Error('distric is required')
-            
-            if(!req.body.address.city) throw Error('city is required')
-            
-            if(!req.body.phone) throw Error('phone is required')
+            if (!req.body.name) throw Error('name is required')
+
+            if (!req.body.email) throw Error('email is required')
+
+            if (!req.body.address.street) throw Error('street is required')
+
+            if (!req.body.address.village) throw Error('village is required')
+
+            if (!req.body.address.distric) throw Error('distric is required')
+
+            if (!req.body.address.city) throw Error('city is required')
+
+            if (!req.body.phone) throw Error('phone is required')
 
             await getCollection('users').updateOne({ _id: req.user._id }, {
                 $set: {
