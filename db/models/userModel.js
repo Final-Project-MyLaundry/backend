@@ -9,17 +9,7 @@ class UserModel {
         return getCollection('users')
     }
 
-    //TODO GET ALL USERS
-    static async getUsers(req, res) {
-        try {
-            const user = await getCollection('users').find().toArray();
-            await res.json(user)
-        } catch (error) {
-            res.json({ message: error.message })
-        }
-    }
-
-    //TODO REGISTER
+     //TODO REGISTER
     static async registerUser(req, res) {
 
         try {
@@ -95,8 +85,23 @@ class UserModel {
     //TODO GET USER BY ID
     static async getUserById(req, res) {
         try {
-            const { id } = req.params
-            const user = await getCollection('users').findOne({ _id: new ObjectId(id) })
+            // const { id } = req.params
+            const user = await getCollection('users').aggregate(
+                [
+                    {
+                      '$match': {
+                        '_id': new ObjectId(req.user._id)
+                      }
+                    }, {
+                      '$lookup': {
+                        'from': 'transactions', 
+                        'localField': '_id', 
+                        'foreignField': 'userId', 
+                        'as': 'transactions'
+                      }
+                    }
+                  ]
+            ).toArray()
             await res.json(user)
         } catch (error) {
             res.json({ message: error.message })

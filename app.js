@@ -17,14 +17,15 @@ const upload = multer({storage})
 app.use(express.json()) 
 app.use(express.urlencoded({ extended: true })) 
 
-app.get('/users', UserModel.getUsers)
 app.post('/users/register', UserModel.registerUser)
 app.post('/users/login', UserModel.loginUser)
-app.get('/users/:id', UserModel.getUserById)
-app.put('/users/:id',authentication, UserModel.updateUser)
-
 
 app.use(authentication)
+
+app.get('/users', UserModel.getUserById)
+app.put('/users', UserModel.updateUser)
+
+
 
 app.get('/outlets', OutletModel.getOutlets)
 
