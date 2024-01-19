@@ -85,12 +85,18 @@ class UserModel {
     //TODO GET USER BY ID
     static async getUserById(req, res) {
         try {
-            // const { id } = req.params
             const user = await getCollection('users').aggregate(
                 [
                     {
                       '$match': {
                         '_id': new ObjectId(req.user._id)
+                      }
+                    }, {
+                      '$lookup': {
+                        'from': 'orders', 
+                        'localField': '_id', 
+                        'foreignField': 'userId', 
+                        'as': 'orders'
                       }
                     }, {
                       '$lookup': {
@@ -107,6 +113,7 @@ class UserModel {
             res.json({ message: error.message })
         }
     }
+
     //TODO UPDATE PROFILE
     static async updateUser(req, res) {
         try {
