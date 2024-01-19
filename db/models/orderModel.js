@@ -10,9 +10,6 @@ module.exports = class OrderModel {
             let input = {
                 ...data,
                 userId: new ObjectId(req.user._id),
-                services : [
-                    ...data.services,
-                ],
                 outletId: new ObjectId(req.params.id),
                 statusReceive: false,
                 createdAt: new Date(),
