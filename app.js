@@ -28,9 +28,9 @@ app.put('/users', UserModel.updateUser)
 
 
 //? OUTLET
-app.get('/outlets', OutletModel.getOutlets)
-app.get('/outlets/:id', OutletModel.getByIdOutlets)
-app.get('/outlets/:userId', OutletModel.getByUserIdOutlets) //! GET OUTLET BY USER PROVIDER
+app.get('/outlets', OutletModel.getOutlets) //TODO GET ALL OUTLET
+app.get('/outlets/provider', OutletModel.getByUserIdOutlets) //TODO GET OUTLET BY USER PROVIDER
+app.get('/outlets/:id', OutletModel.getByIdOutlets) //TODO GET OUTLET BY ID
 app.post('/outlets', OutletModel.addOutlet)
 app.put('/outlets', OutletModel.editOutlet)
 app.patch('/outlets',upload.single('image'), OutletModel.patchOutlet)
