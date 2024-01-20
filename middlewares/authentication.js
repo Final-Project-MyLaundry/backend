@@ -26,6 +26,7 @@ async function authentication(req, res, next){
     req.user = {
         _id : user._id,
         email : user.email,
+        address : user.address
     }
     next()
    } catch (error) {

@@ -22,24 +22,22 @@ app.post('/users/login', UserModel.loginUser)
 
 app.use(authentication)
 
+//? USER PENGGUNA
 app.get('/users', UserModel.getUserById)
 app.put('/users', UserModel.updateUser)
 
 
-
+//? OUTLET
 app.get('/outlets', OutletModel.getOutlets)
-
 app.get('/outlets/user', OutletModel.getByUserIdOutlets)
-
 app.get('/outlets/:id', OutletModel.getByIdOutlets)
-
 app.post('/outlets', OutletModel.addOutlet)
-
 app.put('/outlets', OutletModel.editOutlet)
-
 app.patch('/outlets',upload.single('image'), OutletModel.patchOutlet)
-
 app.delete('/outlets', OutletModel.deleteOutlet)
+
+
+
 
 app.get('/orders', OrderModel.getByUserOrder)
 
