@@ -12,10 +12,36 @@ module.exports = class OutletModel {
 
   static async getOutlets(req, res) {
     try {
-      const outlets = await getCollection('outlets').find().toArray();
+      const {filter, nearby} = req.body
+      // console.log(req.body);
+
+      let query = {
+        statusOpen : true
+      }
+      if (nearby) {
+        query = {
+          ...query,
+          location: {
+            $near: {
+              $maxDistance: 500,
+              $geometry: {
+                type: "Point",
+                coordinates: [parseFloat(nearby.longitude), parseFloat(nearby.latitude)]
+              }
+            }
+          }
+        }
+      }
+       
+      if (filter) {
+        query = { "services.name" : new RegExp(filter, 'i') }
+      }
+
+      const outlets = await getCollection('outlets').find(query).toArray();
       await res.json(outlets)
       
     } catch (error) {
+      console.log(error);
       res.json({ message: error.message })
       
     }
