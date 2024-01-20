@@ -29,8 +29,8 @@ app.put('/users', UserModel.updateUser)
 
 //? OUTLET
 app.get('/outlets', OutletModel.getOutlets)
-app.get('/outlets/user', OutletModel.getByUserIdOutlets)
 app.get('/outlets/:id', OutletModel.getByIdOutlets)
+app.get('/outlets/:userId', OutletModel.getByUserIdOutlets) //! GET OUTLET BY USER PROVIDER
 app.post('/outlets', OutletModel.addOutlet)
 app.put('/outlets', OutletModel.editOutlet)
 app.patch('/outlets',upload.single('image'), OutletModel.patchOutlet)
