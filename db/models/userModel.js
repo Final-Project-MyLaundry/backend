@@ -15,7 +15,6 @@ class UserModel {
         try {
             const user = req.body
             // console.log(req.body)
-
             if (!user.name) throw Error('name is required')
 
             if (!user.email) throw Error('email is required')

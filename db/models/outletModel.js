@@ -100,6 +100,7 @@ module.exports = class OutletModel {
     //foto dipisah?
   }
 
+
   static async editOutlet(req, res) {
     const editOutlet = await getCollection('outlets').replaceOne({ _id: new ObjectId(req.params.id) }, data)
     await res.json(editOutlet)
