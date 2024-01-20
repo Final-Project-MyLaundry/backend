@@ -9,7 +9,7 @@ class UserModel {
         return getCollection('users')
     }
 
-     //TODO REGISTER
+    //TODO REGISTER
     static async registerUser(req, res) {
 
         try {
@@ -81,31 +81,31 @@ class UserModel {
         }
     }
 
-    //TODO GET USER BY ID
+    //TODO GET USER CUSTOMER
     static async getUserById(req, res) {
         try {
             const user = await getCollection('users').aggregate(
                 [
                     {
-                      '$match': {
-                        '_id': new ObjectId(req.user._id)
-                      }
+                        '$match': {
+                            '_id': new ObjectId(req.user._id)
+                        }
                     }, {
-                      '$lookup': {
-                        'from': 'orders', 
-                        'localField': '_id', 
-                        'foreignField': 'userId', 
-                        'as': 'orders'
-                      }
+                        '$lookup': {
+                            'from': 'orders',
+                            'localField': '_id',
+                            'foreignField': 'userId',
+                            'as': 'orders'
+                        }
                     }, {
-                      '$lookup': {
-                        'from': 'transactions', 
-                        'localField': '_id', 
-                        'foreignField': 'userId', 
-                        'as': 'transactions'
-                      }
+                        '$lookup': {
+                            'from': 'transactions',
+                            'localField': '_id',
+                            'foreignField': 'userId',
+                            'as': 'transactions'
+                        }
                     }
-                  ]
+                ]
             ).toArray()
             await res.json(user)
         } catch (error) {
@@ -142,6 +142,40 @@ class UserModel {
                 ...req.body
             })
 
+        } catch (error) {
+            res.json({ message: error.message })
+        }
+    }
+
+
+
+    //TODO GET USER PROVIDER
+    static async getUserById(req, res) {
+        try {
+            const user = await getCollection('users').aggregate(
+                [
+                    {
+                      '$match': {
+                        '_id': new ObjectId(req.user._id)
+                      }
+                    }, {
+                      '$lookup': {
+                        'from': 'transactions', 
+                        'localField': '_id', 
+                        'foreignField': 'userId', 
+                        'as': 'transactions'
+                      }
+                    }, {
+                      '$lookup': {
+                        'from': 'outlets', 
+                        'localField': '_id', 
+                        'foreignField': 'userId', 
+                        'as': 'outlets'
+                      }
+                    }
+                  ]
+            ).toArray()
+            await res.json(user)
         } catch (error) {
             res.json({ message: error.message })
         }
