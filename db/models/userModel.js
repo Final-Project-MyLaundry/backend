@@ -150,7 +150,7 @@ class UserModel {
 
 
     //TODO GET USER PROVIDER
-    static async getUserById(req, res) {
+    static async getUserByIdProvider(req, res) {
         try {
             const user = await getCollection('users').aggregate(
                 [

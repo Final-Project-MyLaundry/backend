@@ -24,14 +24,15 @@ app.use(authentication)
 
 //? USER PENGGUNA
 app.get('/users', UserModel.getUserById) //TODO GET PROFILE USER CUSTOMER
-app.get('/users/provider', UserModel.getUserById) //TODO GET PROFILE USER PROVIDER
+app.get('/users/provider', UserModel.getUserByIdProvider) //TODO GET PROFILE USER PROVIDER
 app.put('/users', UserModel.updateUser)
 
 
 //? OUTLET
 app.get('/outlets', OutletModel.getOutlets) //TODO GET ALL OUTLET
 app.get('/outlets/provider', OutletModel.getByUserIdOutlets) //TODO GET OUTLET BY USER PROVIDER
-app.get('/outlets/:id', OutletModel.getByIdOutlets) //TODO GET OUTLET BY ID
+app.get('/outlets/:id', OutletModel.getByIdOutlets) //TODO GET OUTLET BY ID FOR CUSTOMER
+app.get('/outlets/provider/:id', OutletModel.getByIdOutletsProvider) //TODO GET OUTLET BY ID FOR PROVIDER
 app.post('/outlets', OutletModel.addOutlet)
 app.put('/outlets', OutletModel.editOutlet)
 app.patch('/outlets',upload.single('image'), OutletModel.patchOutlet)

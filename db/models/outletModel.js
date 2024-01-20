@@ -12,11 +12,11 @@ module.exports = class OutletModel {
 
   static async getOutlets(req, res) {
     try {
-      const {filter, nearby} = req.body
+      const { filter, nearby } = req.body
       // console.log(req.body);
 
       let query = {
-        statusOpen : true
+        statusOpen: true
       }
       if (nearby) {
         query = {
@@ -32,48 +32,48 @@ module.exports = class OutletModel {
           }
         }
       }
-       
+
       if (filter) {
-        query = { "services.name" : new RegExp(filter, 'i') }
+        query = { "services.name": new RegExp(filter, 'i') }
       }
 
       const outlets = await getCollection('outlets').find(query).toArray();
       await res.json(outlets)
-      
+
     } catch (error) {
       console.log(error);
       res.json({ message: error.message })
-      
+
     }
   }
 
   static async getByUserIdOutlets(req, res) {
     try {
-      const outlets = await getCollection('outlets').find({userId: new ObjectId(req.user._id)}).toArray();
+      const outlets = await getCollection('outlets').find({ userId: new ObjectId(req.user._id) }).toArray();
       await res.json(outlets)
-      
+
     } catch (error) {
       res.json({ message: error.message })
-      
+
     }
   }
 
   static async getByIdOutlets(req, res) {
     try {
-      let {id} = req.params
-      const outlets = await getCollection('outlets').find({_id: new ObjectId(id)}).toArray();
+      let { id } = req.params
+      const outlets = await getCollection('outlets').find({ _id: new ObjectId(id) }).toArray();
       await res.json(outlets)
-      
+
     } catch (error) {
       res.json({ message: error.message })
-      
+
     }
   }
 
   static async addOutlet(req, res) {
     try {
       const data = req.body
-      
+
       if (!data.name) throw Error('name is required')
       if (!data.address?.street || !data.address?.village || !data.address?.district || !data.address?.city) throw Error('address is not complete')
       if (!data.phone) throw Error('phone number is required')
@@ -89,11 +89,11 @@ module.exports = class OutletModel {
 
       const addOutlet = await getCollection('outlets').insertOne(input)
       await res.json({
-        _id : addOutlet.insertedId,
+        _id: addOutlet.insertedId,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
-      
+
     } catch (error) {
       res.json({ message: error.message })
     }
@@ -102,33 +102,67 @@ module.exports = class OutletModel {
 
 
   static async editOutlet(req, res) {
-    const editOutlet = await getCollection('outlets').replaceOne({ _id: new ObjectId(req.params.id) }, data)
-    await res.json(editOutlet)
+    try {
+      const editOutlet = await getCollection('outlets').replaceOne({ _id: new ObjectId(req.params.id) }, data)
+      await res.json(editOutlet)
+    } catch (error) {
+      res.json({ message: error.message })
+    }
   }
-  
+
   static async patchOutlet(req, res) {
     try {
       if (!req.file) {
-        throw{name:"NotFound"}
+        throw { name: "NotFound" }
       }
-            const base64 = Buffer.from(req.file.buffer).toString('base64')
-            const dataURI = `data:${req.file.mimetype};base64,${base64}`
+      const base64 = Buffer.from(req.file.buffer).toString('base64')
+      const dataURI = `data:${req.file.mimetype};base64,${base64}`
 
-            const result = await cloudinary.uploader.upload(dataURI)
+      const result = await cloudinary.uploader.upload(dataURI)
 
-            let patch = await getCollection('outlets').updateOne({_id: req.params.id}, { $set : {image: result.secure_url} })
+      let patch = await getCollection('outlets').updateOne({ _id: req.params.id }, { $set: { image: result.secure_url } })
 
-            patch.acknowledged && res
-                .json({message : 'success patch image'})
+      patch.acknowledged && res
+        .json({ message: 'success patch image' })
     } catch (error) {
-        next(error)
+      res.json({ message: error.message })
     }
-}
+  }
 
   static async deleteOutlet(req, res) {
+    try {
+      const deleteOutlet = await getCollection('outlets').deleteOne({ _id: new ObjectId(req.params.id) })
+      await res.json(deleteOutlet)
+    } catch (error) {
+      res.json({ message: error.message })
+    }
+  }
 
-  const deleteOutlet = await getCollection('outlets').deleteOne({ _id: new ObjectId(req.params.id) })
-  await res.json(deleteOutlet)
-}
+  static async getByIdOutletsProvider(req, res) {
+    try {
+      let {id} = req.params
+      const outlets = await getCollection('outlets').aggregate(
+        [
+          {
+            '$match': {
+              '_id': new ObjectId(id)
+            }
+          }, {
+            '$lookup': {
+              'from': 'orders', 
+              'localField': '_id', 
+              'foreignField': 'outletId', 
+              'as': 'historyOrders'
+            }
+          }
+        ]
+      ).toArray();
+      await res.json(outlets)
+      
+    } catch (error) {
+      res.json({ message: error.message })
+      
+    }
+  }
 
 }
