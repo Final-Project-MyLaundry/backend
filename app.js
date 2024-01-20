@@ -23,7 +23,8 @@ app.post('/users/login', UserModel.loginUser)
 app.use(authentication)
 
 //? USER PENGGUNA
-app.get('/users', UserModel.getUserById)
+app.get('/users', UserModel.getUserById) //TODO GET PROFILE USER CUSTOMER
+app.get('/users/provider', UserModel.getUserById) //TODO GET PROFILE USER PROVIDER
 app.put('/users', UserModel.updateUser)
 
 
