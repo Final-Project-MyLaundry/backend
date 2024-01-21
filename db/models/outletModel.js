@@ -100,17 +100,62 @@ module.exports = class OutletModel {
     //foto dipisah?
   }
 
+  static async getServices(req, res) {
+    try {
+      const services = await getCollection('listServices').find().toArray()
+      await res.json(services)
+    } catch (error) {
+      res.json({ message: error.message })
+    }
+  }
 
   static async editOutlet(req, res) {
     try {
-      const editOutlet = await getCollection('outlets').replaceOne({ _id: new ObjectId(req.params.id) }, data)
+      const data = req.body
+      const outletBefore = await getCollection('outlets').findOne({ _id: new ObjectId(req.params.id)})
+      const editOutlet = await getCollection('outlets').replaceOne({ _id: new ObjectId(req.params.id) }, {
+        ...outletBefore,
+        ...data
+      })
       await res.json(editOutlet)
     } catch (error) {
       res.json({ message: error.message })
     }
   }
 
-  static async patchOutlet(req, res) {
+  static async patchOutletReview(req, res) {
+    try {
+
+      const data = req.body
+      let patch = await getCollection('outlets').updateOne({ _id: new ObjectId(req.params.id) }, { $push: { reviews: data } })
+
+      patch.acknowledged && res
+        .json({ message: 'success add review' })
+    } catch (error) {
+      res.json({ message: error.message })
+    }
+  }
+
+  static async patchOutletImage(req, res) {
+    try {
+      if (!req.file) {
+        throw Error("Please enter an image")
+      }
+      const base64 = Buffer.from(req.file.buffer).toString('base64')
+      const dataURI = `data:${req.file.mimetype};base64,${base64}`
+
+      const result = await cloudinary.uploader.upload(dataURI)
+
+      let patch = await getCollection('outlets').updateOne({ _id: new ObjectId(req.params.id) }, { $set: { image: result.secure_url } })
+
+      patch.acknowledged && res
+        .json({ message: 'success patch image' })
+    } catch (error) {
+      res.json({ message: error.message })
+    }
+  }
+
+  static async patchOutletReview(req, res) {
     try {
       if (!req.file) {
         throw { name: "NotFound" }

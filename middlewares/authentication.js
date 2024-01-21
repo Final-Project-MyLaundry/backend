@@ -1,6 +1,6 @@
 const { ObjectId } = require('mongodb');
 const { getCollection } = require('../db/config/configMongo');
-const { getUserById } = require('../db/models/userModel');
+const { getUserById } = require('../db/models/serviceModel');
 const { verifyToken } = require('../helpers/jwt');
 
 async function authentication(req, res, next){
