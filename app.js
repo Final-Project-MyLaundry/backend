@@ -45,7 +45,7 @@ app.get('/orders', OrderModel.getByUserOrder)
 
 app.get('/orders/:id', OrderModel.getByIdOrder)
 
-app.post('/orders:id', OrderModel.postOrder)
+app.post('/orders/:id', OrderModel.postOrder)
 
 app.patch('/orders/:id', OrderModel.postOrder)
 
