@@ -3,7 +3,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const express = require('express')
-const UserModel = require('./db/models/userModel')
+const UserModel = require('./db/models/serviceModel')
 const { authentication } = require('./middlewares/authentication')
 const OutletModel = require('./db/models/outletModel')
 const app = express()
@@ -15,39 +15,61 @@ const storage = multer.memoryStorage()
 const upload = multer({storage})
 
 app.use(express.json()) 
-app.use(express.urlencoded({ extended: true })) 
+app.use(express.urlencoded({ extended: true }))
+
+//TODO USER
 
 app.post('/users/register', UserModel.registerUser)
 app.post('/users/login', UserModel.loginUser)
 
 app.use(authentication)
 
-//? USER PENGGUNA
-app.get('/users', UserModel.getUserById) //TODO GET PROFILE USER CUSTOMER
-app.get('/users/provider', UserModel.getUserByIdProvider) //TODO GET PROFILE USER PROVIDER
+//? USER CUSTOMER PROVIDER
 app.put('/users', UserModel.updateUser)
 
+//? USER CUSTOMER
+app.get('/users', UserModel.getUserById) //lookup transaction & order
 
-//? OUTLET
-app.get('/outlets', OutletModel.getOutlets) //TODO GET ALL OUTLET
-app.get('/outlets/provider', OutletModel.getByUserIdOutlets) //TODO GET OUTLET BY USER PROVIDER
-app.get('/outlets/:id', OutletModel.getByIdOutlets) //TODO GET OUTLET BY ID FOR CUSTOMER
-app.get('/outlets/provider/:id', OutletModel.getByIdOutletsProvider) //TODO GET OUTLET BY ID FOR PROVIDER
+//? USER PROVIDER
+app.get('/users/provider', UserModel.getUserByIdProvider) //lookup transaction & outlet, ?order
+
+//TODO OUTLET
+
+//? USER CUSTOMER PROVIDER
+app.get('/outlets/:id', OutletModel.getByIdOutlets) //OUTLET BY ID ?services & review
+
+//? USER CUSTOMER 
+app.get('/outlets', OutletModel.getOutlets) //ALL OUTLET ?filter
+app.patch('/outlets/reviews/:id')
+
+//? USER PROVIDER
+app.get('/outlets/provider', OutletModel.getByUserIdOutlets) //OUTLET BY USER PROVIDER
+app.get('/outlets/provider/:id', OutletModel.getByIdOutletsProvider) //OUTLET BY ID
 app.post('/outlets', OutletModel.addOutlet)
-app.put('/outlets', OutletModel.editOutlet)
-app.patch('/outlets',upload.single('image'), OutletModel.patchOutlet)
-app.delete('/outlets', OutletModel.deleteOutlet)
+app.get('/outlets/services', OutletModel.getServices)
+app.put('/outlets/:id', OutletModel.editOutlet)
+app.patch('/outlets/:id',upload.single('image'), OutletModel.patchOutletImage)
+app.delete('/outlets/:id', OutletModel.deleteOutlet)
 
+//TODO ORDER
 
-
-
-app.get('/orders', OrderModel.getByUserOrder)
-
+//? USER CUSTOMER PROVIDER
 app.get('/orders/:id', OrderModel.getByIdOrder)
 
+//? USER CUSTOMER
 app.post('/orders:id', OrderModel.postOrder)
+app.get('/orders/customer/:id', OrderModel.getByUserCustomerOrder)
+app.patch('/orders/statusReceive/:id',OrderModel.patchOrderReceive)
 
-app.patch('/orders/:id', OrderModel.postOrder)
+//? USER PROVIDER
+app.get('/orders/provider/:id', OrderModel.getByUserProviderOrder)
+app.patch('/orders/progress/:id',OrderModel.patchOrderProgress)
+
+
+
+
+
+
 
 
 
