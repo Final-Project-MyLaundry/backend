@@ -47,15 +47,13 @@ module.exports = class OrderModel {
         }
     }
 
-    static async getByUserOrder(req, res) {
+    static async getByIdOrder(req, res) {
         try {
-            // console.log(req.user._id)
-
             const data = (await getCollection('orders').aggregate(
                 [
                     {
                         '$match': {
-                        'userId': new ObjectId(req.user._id)
+                        '_id': new ObjectId(req.params.id)
                       }
                     }, {
                       '$lookup': {
@@ -68,7 +66,7 @@ module.exports = class OrderModel {
                   ]
             ).toArray())[0]
 
-            console.log(data);
+            // console.log(data);
 
             let totalAmount = 0
             let services = []
@@ -85,17 +83,6 @@ module.exports = class OrderModel {
                 totalAmount,
                 servicesId: services
             })
-
-        } catch (error) {
-            res.json({ message: error.message })
-        }
-    }
-
-    static async getByIdOrder(req, res) {
-        try {
-            const data = await getCollection('orders').find({ _id: new ObjectId(req.params.id) }).toArray()
-
-            await res.json(data)
 
         } catch (error) {
             res.json({ message: error.message })
