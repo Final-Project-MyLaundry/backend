@@ -50,7 +50,8 @@ module.exports = class OutletModel {
   static async getByUserIdOutlets(req, res) {
     try {
       const outlets = await getCollection('outlets').find({ userId: new ObjectId(req.user._id) }).toArray();
-      await res.json(outlets)
+
+      res.json(outlets)
 
     } catch (error) {
       res.json({ message: error.message })
@@ -147,25 +148,6 @@ module.exports = class OutletModel {
       const result = await cloudinary.uploader.upload(dataURI)
 
       let patch = await getCollection('outlets').updateOne({ _id: new ObjectId(req.params.id) }, { $set: { image: result.secure_url } })
-
-      patch.acknowledged && res
-        .json({ message: 'success patch image' })
-    } catch (error) {
-      res.json({ message: error.message })
-    }
-  }
-
-  static async patchOutletReview(req, res) {
-    try {
-      if (!req.file) {
-        throw { name: "NotFound" }
-      }
-      const base64 = Buffer.from(req.file.buffer).toString('base64')
-      const dataURI = `data:${req.file.mimetype};base64,${base64}`
-
-      const result = await cloudinary.uploader.upload(dataURI)
-
-      let patch = await getCollection('outlets').updateOne({ _id: req.params.id }, { $set: { image: result.secure_url } })
 
       patch.acknowledged && res
         .json({ message: 'success patch image' })

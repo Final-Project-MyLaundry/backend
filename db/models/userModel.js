@@ -15,16 +15,16 @@ class UserModel {
         try {
             const user = req.body
             // console.log(req.body)
-            if (!user.name) throw Error('name is required')
+            if (!user.name) return res.status(400).json({ message: 'name is required' })
 
-            if (!user.email) throw Error('email is required')
+            if (!user.email) return res.status(400).json({ message: 'email is required' })
 
-            if (!user.password) throw Error('password is required')
+            if (!user.password) return res.status(400).json({ message: 'password is required' })
 
-            if (user.password.length < 6) throw Error('password must be at least 6 characters')
+            if (user.password.length < 6) return res.status(400).json({ message: 'password must be at least 6 characters' })
 
             const checkUser = await getCollection('users').findOne({ email: user.email })
-            if (checkUser) throw Error('account already registered');
+            if (checkUser) return res.status(400).json({ message: 'account already registered' });
 
             const result = await getCollection('users').insertOne({
                 ...user,
@@ -35,11 +35,12 @@ class UserModel {
                     city: ""
                 },
                 phone: '',
-                balance: 0,
-                password: hashPass(user.password)
+                password: hashPass(user.password),
+                createdAt: new Date(),
+                updatedAt: new Date()
             })
 
-            await res.json({
+            return res.json({
                 message: 'success register',
                 _id: result.insertedId,
                 ...user,
@@ -57,21 +58,22 @@ class UserModel {
     static async loginUser(req, res) {
         try {
             const { email, password } = req.body
-            if (!email) throw Error('email is required')
-            if (!password) throw Error('password is required')
+            if (!email) return res.status(400).json({ message: 'email is required' })
+            if (!password) return res.status(400).json({ message: 'password is required' })
+
 
             const user = await getCollection('users').findOne({ email })
-            if (!user) throw Error('account not found')
+            if (!user) return res.status(400).json({ message: 'account not found' })
 
             const checkPass = comparePass(password, user.password)
-            if (!checkPass) throw Error('password not valid')
+            if (!checkPass) return res.status(400).json({ message: 'password not valid' })
 
             const token = generateToken({
                 _id: user._id,
                 email: user.email
             })
 
-            await res.json({
+            return res.json({
                 message: 'success login',
                 access_token: token
             })
@@ -107,6 +109,8 @@ class UserModel {
                     }
                 ]
             ).toArray()
+
+           
             await res.json(user)
         } catch (error) {
             res.json({ message: error.message })
@@ -175,7 +179,62 @@ class UserModel {
                     }
                   ]
             ).toArray()
-            await res.json(user)
+
+            let saldoIn = await getCollection('transactions').aggregate([
+                {
+                    '$match': {
+                        '$and': [
+                            {
+                                'userId': new ObjectId(req.user._id)
+                            }, {
+                                'description': 'IN'
+                            }, {
+                                'paymentStatus': 'Completed'
+                            }
+                        ]
+                    }
+                }, {
+                    '$group': {
+                        '_id': null,
+                        'sum': {
+                            '$sum': '$amount'
+                        }
+                    }
+                }
+            ]).toArray()
+
+            let saldoOut = await getCollection('transactions').aggregate([
+                {
+                    '$match': {
+                        '$and': [
+                            {
+                                'userId': new ObjectId(req.user._id)
+                            }, {
+                                'description': 'OUT'
+                            }, {
+                                'paymentStatus': 'Completed'
+                            }
+                        ]
+                    }
+                }, {
+                    '$group': {
+                        '_id': null,
+                        'sum': {
+                            '$sum': '$amount'
+                        }
+                    }
+                }
+            ]).toArray()
+
+            let saldo = 0
+
+            saldoIn.length != 0 ? saldo = saldoIn[0]?.sum : saldo = 0
+            saldoOut.length != 0 ? saldo = saldo - saldoOut[0]?.sum : saldo = saldo
+
+            await res.json({
+                ...user[0],
+                saldo
+            })
         } catch (error) {
             res.json({ message: error.message })
         }
