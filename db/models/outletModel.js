@@ -32,16 +32,35 @@ module.exports = class OutletModel {
           }
         }
       }
+      let agg = [
+        {
+          '$match': {
+            'statusOpen': true
+          }
+        },
+        {
+          '$lookup': {
+            'from': 'services',
+            'localField': '_id',
+            'foreignField': 'outletId',
+            'as': 'services'
+          }
+        }
+      ]
 
       if (filter) {
-        query = { "services.name": new RegExp(filter, 'i') }
+        agg.push({
+          '$match': {
+            'services.name': new RegExp(filter, 'i')
+          }
+        })
       }
 
-      const outlets = await getCollection('outlets').find(query).toArray();
+      const outlets = await getCollection('outlets').aggregate(agg).toArray();
       await res.json(outlets)
 
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       res.json({ message: error.message })
 
     }
@@ -62,7 +81,32 @@ module.exports = class OutletModel {
   static async getByIdOutlets(req, res) {
     try {
       let { id } = req.params
-      const outlets = await getCollection('outlets').find({ _id: new ObjectId(id) }).toArray();
+      const outlets = await getCollection('outlets').aggregate(
+        [
+          {
+            '$match': {
+              '_id': new ObjectId(id)
+            }
+          }, {
+            '$lookup': {
+              'from': 'services',
+              'localField': '_id',
+              'foreignField': 'outletId',
+              'as': 'services'
+            },
+            '$lookup': {
+              'from': 'users',
+              'localField': 'reviews.userId',
+              'foreignField': '_id',
+              'as': 'result'
+            }
+          }, {
+            '$set': {
+              'reviews.name': '$result.name'
+            }
+          }
+        ]
+      ).toArray();
       await res.json(outlets)
 
     } catch (error) {
@@ -78,7 +122,6 @@ module.exports = class OutletModel {
       if (!data.name) throw Error('name is required')
       if (!data.address?.street || !data.address?.village || !data.address?.district || !data.address?.city) throw Error('address is not complete')
       if (!data.phone) throw Error('phone number is required')
-      if (data.services.length == 0) throw Error('services is required')
 
       let input = {
         ...data,
@@ -89,7 +132,7 @@ module.exports = class OutletModel {
       }
 
       const addOutlet = await getCollection('outlets').insertOne(input)
-      await res.json({
+      res.json({
         _id: addOutlet.insertedId,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -113,7 +156,7 @@ module.exports = class OutletModel {
   static async editOutlet(req, res) {
     try {
       const data = req.body
-      const outletBefore = await getCollection('outlets').findOne({ _id: new ObjectId(req.params.id)})
+      const outletBefore = await getCollection('outlets').findOne({ _id: new ObjectId(req.params.id) })
       const editOutlet = await getCollection('outlets').replaceOne({ _id: new ObjectId(req.params.id) }, {
         ...outletBefore,
         ...data
@@ -156,6 +199,16 @@ module.exports = class OutletModel {
     }
   }
 
+  static async patchOpen(req, res) {
+    try {
+
+      const patchOpen = await getCollection('outlets').updateOne({ _id: new ObjectId(req.params.id) }, [{ $set: { statusOpen: { $eq: [false, "$statusOpen"] } } }])
+      res.json(patchOpen)
+    } catch (error) {
+      res.json({ message: error.message })
+    }
+  }
+
   static async deleteOutlet(req, res) {
     try {
       const deleteOutlet = await getCollection('outlets').deleteOne({ _id: new ObjectId(req.params.id) })
@@ -167,7 +220,7 @@ module.exports = class OutletModel {
 
   static async getByIdOutletsProvider(req, res) {
     try {
-      let {id} = req.params
+      let { id } = req.params
       const outlets = await getCollection('outlets').aggregate(
         [
           {
@@ -176,19 +229,25 @@ module.exports = class OutletModel {
             }
           }, {
             '$lookup': {
-              'from': 'orders', 
-              'localField': '_id', 
-              'foreignField': 'outletId', 
+              'from': 'orders',
+              'localField': '_id',
+              'foreignField': 'outletId',
               'as': 'historyOrders'
+            },
+            '$lookup': {
+              'from': 'services',
+              'localField': '_id',
+              'foreignField': 'outletId',
+              'as': 'services'
             }
           }
         ]
       ).toArray();
       await res.json(outlets)
-      
+
     } catch (error) {
       res.json({ message: error.message })
-      
+
     }
   }
 
