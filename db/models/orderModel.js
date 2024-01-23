@@ -40,9 +40,40 @@ module.exports = class OrderModel {
 
     static async patchOrderProgress(req, res) {
         try {
-
             const data = req.body
             let patch = await getCollection('orders').updateOne({ _id: new ObjectId(req.params.id) }, { $set: { progress: data } })
+
+            patch.acknowledged && res
+                .json({ message: 'success patch progress' })
+        } catch (error) {
+            console.error('Error:', error);
+            res.json({ message: error.message })
+        }
+    }
+
+    static async patchOrderServices(req, res) {
+        try {
+            const data = req.body
+
+            let order = await getCollection('orders').findOne({ _id: new ObjectId(req.params.id) })
+
+            let services = order.servicesId.map((el,i) => {
+                return (
+                    {
+                        servicesId: new ObjectId(el.servicesId[i]),
+                        qty: data[i]
+                    }
+                )
+            })
+
+            order = {
+                ...order,
+                servicesId: services
+            }
+
+            delete order._id
+
+            let patch = await getCollection('orders').updateOne({ _id: new ObjectId(req.params.id) }, { $set: { order } })
 
             patch.acknowledged && res
                 .json({ message: 'success patch progress' })
@@ -287,6 +318,7 @@ module.exports = class OrderModel {
                 createdAt: new Date(),
                 updatedAt: new Date()
             })
+
             res.json({ url: transaction.redirect_url, orderId })
         } catch (error) {
             console.error('Error:', error);
