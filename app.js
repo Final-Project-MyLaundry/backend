@@ -56,18 +56,20 @@ app.delete('/outlets/:id', OutletModel.deleteOutlet)
 
 //TODO ORDER
 
-//? USER CUSTOMER PROVIDER
-app.get('/orders/:id', OrderModel.getByIdOrder)
 
 //? USER CUSTOMER
-app.get('/orders/customer/:param', OrderModel.getByUserCustomerOrder)
+app.get('/orders/customer', OrderModel.getByUserCustomerOrder)
 app.patch('/orders/statusReceive/:id',OrderModel.patchOrderReceive)
-app.post('/orders/:id', OrderModel.postOrder)
+
 
 //? USER PROVIDER
 app.get('/orders/provider/:param', OrderModel.getByUserProviderOrder)
 app.patch('/orders/progress/:id',OrderModel.patchOrderProgress)
 
+//? USER CUSTOMER
+app.post('/orders/:id', OrderModel.postOrder)
+//? USER CUSTOMER PROVIDER
+app.get('/orders/:id', OrderModel.getByIdOrder)
 //TODO PAYMENT
 
 app.post('/payment/midtrans/initiate', OrderModel.createPayment)
@@ -75,6 +77,7 @@ app.patch('/payment/midtrans/initiate', OrderModel.patchPayment)
 
 //TODO SERVICE
 app.get('/services', ServiceModel.getServices)
+app.post('/services', ServiceModel.postServices)
 
 
 

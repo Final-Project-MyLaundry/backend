@@ -61,6 +61,7 @@ module.exports = class OutletModel {
 
     } catch (error) {
       // console.log(error);
+      console.error('Error:', error);
       res.json({ message: error.message })
 
     }
@@ -73,6 +74,7 @@ module.exports = class OutletModel {
       res.json(outlets)
 
     } catch (error) {
+      console.error('Error:', error);
       res.json({ message: error.message })
 
     }
@@ -107,9 +109,43 @@ module.exports = class OutletModel {
           }
         ]
       ).toArray();
-      await res.json(outlets)
 
+      const reviews = await getCollection('outlets').aggregate(
+        [
+          {
+            '$match': {
+              '_id': new ObjectId(id)
+            }
+          }, {
+            '$unwind': {
+              'path': '$reviews'
+            }
+          }, {
+            '$lookup': {
+              'from': 'users', 
+              'localField': 'reviews.userId', 
+              'foreignField': '_id', 
+              'as': 'result'
+            }
+          }, {
+            '$set': {
+              'reviews.name': '$result.name'
+            }
+          }, {
+            '$group': {
+              '_id': '$_id', 
+              'reviews': {
+                '$push': '$reviews'
+              }
+            }
+          }
+        ]
+      ).toArray()
+      outlets[0] = { ...outlets[0], ...reviews[0] }
+
+      res.json(outlets)
     } catch (error) {
+      console.error('Error:', error);
       res.json({ message: error.message })
 
     }
@@ -139,6 +175,7 @@ module.exports = class OutletModel {
       })
 
     } catch (error) {
+      console.error('Error:', error);
       res.json({ message: error.message })
     }
     //foto dipisah?
@@ -161,8 +198,9 @@ module.exports = class OutletModel {
         ...outletBefore,
         ...data
       })
-      await res.json(editOutlet)
+      res.json(editOutlet)
     } catch (error) {
+      console.error('Error:', error);
       res.json({ message: error.message })
     }
   }
@@ -176,6 +214,7 @@ module.exports = class OutletModel {
       patch.acknowledged && res
         .json({ message: 'success add review' })
     } catch (error) {
+      console.error('Error:', error);
       res.json({ message: error.message })
     }
   }
@@ -195,6 +234,7 @@ module.exports = class OutletModel {
       patch.acknowledged && res
         .json({ message: 'success patch image' })
     } catch (error) {
+      console.error('Error:', error);
       res.json({ message: error.message })
     }
   }
@@ -205,6 +245,7 @@ module.exports = class OutletModel {
       const patchOpen = await getCollection('outlets').updateOne({ _id: new ObjectId(req.params.id) }, [{ $set: { statusOpen: { $eq: [false, "$statusOpen"] } } }])
       res.json(patchOpen)
     } catch (error) {
+      console.error('Error:', error);
       res.json({ message: error.message })
     }
   }
@@ -233,7 +274,8 @@ module.exports = class OutletModel {
               'localField': '_id',
               'foreignField': 'outletId',
               'as': 'historyOrders'
-            },
+            }
+          },{
             '$lookup': {
               'from': 'services',
               'localField': '_id',
@@ -243,9 +285,43 @@ module.exports = class OutletModel {
           }
         ]
       ).toArray();
+
+      const reviews = await getCollection('outlets').aggregate(
+        [
+          {
+            '$match': {
+              '_id': new ObjectId(id)
+            }
+          }, {
+            '$unwind': {
+              'path': '$reviews'
+            }
+          }, {
+            '$lookup': {
+              'from': 'users', 
+              'localField': 'reviews.userId', 
+              'foreignField': '_id', 
+              'as': 'result'
+            }
+          }, {
+            '$set': {
+              'reviews.name': '$result.name'
+            }
+          }, {
+            '$group': {
+              '_id': '$_id', 
+              'reviews': {
+                '$push': '$reviews'
+              }
+            }
+          }
+        ]
+      ).toArray()
+      outlets[0] = { ...outlets[0], ...reviews[0] }
       await res.json(outlets)
 
     } catch (error) {
+      console.error('Error:', error);
       res.json({ message: error.message })
 
     }

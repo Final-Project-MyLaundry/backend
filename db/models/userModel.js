@@ -49,6 +49,7 @@ class UserModel {
 
             })
         } catch (error) {
+            console.error('Error:', error);
             res.json({ message: error.message })
         }
     }
@@ -79,6 +80,7 @@ class UserModel {
             })
 
         } catch (error) {
+            console.error('Error:', error);
             res.json({ message: error.message })
         }
     }
@@ -115,6 +117,7 @@ class UserModel {
             })
 
         } catch (error) {
+            console.error('Error:', error);
             res.json({ message: error.message })
         }
     }
@@ -127,25 +130,34 @@ class UserModel {
             const user = await getCollection('users').aggregate(
                 [
                     {
-                      '$match': {
-                        '_id': new ObjectId(req.user._id)
-                      }
+                        '$match': {
+                            '_id': new ObjectId(req.user._id)
+                        }
                     }, {
-                      '$lookup': {
-                        'from': 'transactions', 
-                        'localField': '_id', 
-                        'foreignField': 'userId', 
-                        'as': 'transactions'
-                      }
-                    }, {
-                      '$lookup': {
-                        'from': 'outlets', 
-                        'localField': '_id', 
-                        'foreignField': 'userId', 
-                        'as': 'outlets'
-                      }
+                        '$lookup': {
+                            'from': 'outlets',
+                            'localField': '_id',
+                            'foreignField': 'userId',
+                            'as': 'outlets'
+                        }
+                    },
+                    {
+                        $lookup:
+                        {
+                            from: "transactions",
+                            pipeline: [
+                                {
+                                    $match: {
+                                        paymentStatus: "Completed",
+                                    }
+                                },
+                            ],
+                            localField: "_id",
+                            foreignField: "userId",
+                            as: "transactions",
+                        }
                     }
-                  ]
+                ]
             ).toArray()
 
             let saldoIn = await getCollection('transactions').aggregate([
@@ -204,6 +216,7 @@ class UserModel {
                 saldo
             })
         } catch (error) {
+            console.error('Error:', error);
             res.json({ message: error.message })
         }
     }
