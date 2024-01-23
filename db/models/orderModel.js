@@ -56,16 +56,15 @@ module.exports = class OrderModel {
             const data = req.body
 
             let order = await getCollection('orders').findOne({ _id: new ObjectId(req.params.id) })
-
             let services = order.servicesId.map((el,i) => {
                 return (
                     {
-                        servicesId: new ObjectId(el.servicesId[i]),
+                        servicesId: el.servicesId,
                         qty: data[i]
                     }
                 )
             })
-
+            console.log(services);
             order = {
                 ...order,
                 servicesId: services
@@ -73,7 +72,7 @@ module.exports = class OrderModel {
 
             delete order._id
 
-            let patch = await getCollection('orders').updateOne({ _id: new ObjectId(req.params.id) }, { $set: { order } })
+            let patch = await getCollection('orders').replaceOne({ _id: new ObjectId(req.params.id) }, order)
 
             patch.acknowledged && res
                 .json({ message: 'success patch progress' })

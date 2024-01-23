@@ -63,8 +63,8 @@ app.patch('/orders/statusReceive/:id',OrderModel.patchOrderReceive)
 
 
 //? USER PROVIDER
-app.get('/orders/provider/:param', OrderModel.getByUserProviderOrder)
-app.patch('/orders/provider/:param', OrderModel.getByUserProviderOrder)
+app.get('/orders/provider/:id', OrderModel.getByUserProviderOrder)
+app.patch('/orders/provider/:id', OrderModel.patchOrderServices)
 app.patch('/orders/progress/:id',OrderModel.patchOrderProgress)
 
 //? USER CUSTOMER
