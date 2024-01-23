@@ -49,6 +49,7 @@ class UserModel {
 
             })
         } catch (error) {
+            console.error('Error:', error);
             res.json({ message: error.message })
         }
     }
@@ -79,43 +80,12 @@ class UserModel {
             })
 
         } catch (error) {
+            console.error('Error:', error);
             res.json({ message: error.message })
         }
     }
 
     //TODO GET USER CUSTOMER
-    static async getUserById(req, res) {
-        try {
-            const user = await getCollection('users').aggregate(
-                [
-                    {
-                        '$match': {
-                            '_id': new ObjectId(req.user._id)
-                        }
-                    }, {
-                        '$lookup': {
-                            'from': 'orders',
-                            'localField': '_id',
-                            'foreignField': 'userId',
-                            'as': 'orders'
-                        }
-                    }, {
-                        '$lookup': {
-                            'from': 'transactions',
-                            'localField': '_id',
-                            'foreignField': 'userId',
-                            'as': 'transactions'
-                        }
-                    }
-                ]
-            ).toArray()
-
-           
-            await res.json(user)
-        } catch (error) {
-            res.json({ message: error.message })
-        }
-    }
 
     //TODO UPDATE PROFILE
     static async updateUser(req, res) {
@@ -147,6 +117,7 @@ class UserModel {
             })
 
         } catch (error) {
+            console.error('Error:', error);
             res.json({ message: error.message })
         }
     }
@@ -154,30 +125,39 @@ class UserModel {
 
 
     //TODO GET USER PROVIDER
-    static async getUserByIdProvider(req, res) {
+    static async getUserById(req, res) {
         try {
             const user = await getCollection('users').aggregate(
                 [
                     {
-                      '$match': {
-                        '_id': new ObjectId(req.user._id)
-                      }
+                        '$match': {
+                            '_id': new ObjectId(req.user._id)
+                        }
                     }, {
-                      '$lookup': {
-                        'from': 'transactions', 
-                        'localField': '_id', 
-                        'foreignField': 'userId', 
-                        'as': 'transactions'
-                      }
-                    }, {
-                      '$lookup': {
-                        'from': 'outlets', 
-                        'localField': '_id', 
-                        'foreignField': 'userId', 
-                        'as': 'outlets'
-                      }
+                        '$lookup': {
+                            'from': 'outlets',
+                            'localField': '_id',
+                            'foreignField': 'userId',
+                            'as': 'outlets'
+                        }
+                    },
+                    {
+                        $lookup:
+                        {
+                            from: "transactions",
+                            pipeline: [
+                                {
+                                    $match: {
+                                        paymentStatus: "Completed",
+                                    }
+                                },
+                            ],
+                            localField: "_id",
+                            foreignField: "userId",
+                            as: "transactions",
+                        }
                     }
-                  ]
+                ]
             ).toArray()
 
             let saldoIn = await getCollection('transactions').aggregate([
@@ -236,6 +216,7 @@ class UserModel {
                 saldo
             })
         } catch (error) {
+            console.error('Error:', error);
             res.json({ message: error.message })
         }
     }

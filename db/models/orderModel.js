@@ -33,6 +33,7 @@ module.exports = class OrderModel {
             await res.json(addOrder)
 
         } catch (error) {
+            console.error('Error:', error);
             res.json({ message: error.message })
         }
     }
@@ -46,6 +47,7 @@ module.exports = class OrderModel {
             patch.acknowledged && res
                 .json({ message: 'success patch progress' })
         } catch (error) {
+            console.error('Error:', error);
             res.json({ message: error.message })
         }
     }
@@ -92,6 +94,7 @@ module.exports = class OrderModel {
                 .json({ message: 'success patch status receive' })
 
         } catch (error) {
+            console.error('Error:', error);
             res.json({ message: error.message })
         }
     }
@@ -99,11 +102,39 @@ module.exports = class OrderModel {
     static async getByUserCustomerOrder(req, res) {
         try {
 
-            const data = await getCollection('orders').find({ customerId: new ObjectId(req.user.id) }).toArray()
+            const result = await getCollection('orders').aggregate(
+                [
+                    {
+                        '$match': {
+                            'customerId': new ObjectId(req.user._id)
+                        }
+                    }, {
+                        '$lookup': {
+                            'from': 'services',
+                            'localField': 'servicesId.servicesId',
+                            'foreignField': '_id',
+                            'as': 'result'
+                        }
+                    }
+                ]
+            ).toArray()
+            // console.log(result[0].servicesId[0]);
+
+            let data = result.map(el => {
+                let totalAmount = 0
+            for (let i = 0; i < el.servicesId.length; i++) {
+                totalAmount += (el.result[i].price * el.servicesId[i].qty)
+            }
+                return {
+                    ...el,
+                    totalAmount
+                }
+            })
 
             res.json(data)
 
         } catch (error) {
+            console.error('Error:', error);
             res.json({ message: error.message })
         }
     }
@@ -177,6 +208,7 @@ module.exports = class OrderModel {
             }
 
         } catch (error) {
+            console.error('Error:', error);
             res.json({ message: error.message })
         }
     }
@@ -217,6 +249,7 @@ module.exports = class OrderModel {
             })
 
         } catch (error) {
+            console.error('Error:', error);
             res.json({ message: error.message })
         }
     }
@@ -242,21 +275,22 @@ module.exports = class OrderModel {
                     "email": 'tes@mail.com'
                 }
             })
-            console.log(transaction);
+            // console.log(transaction);
 
             await getCollection('transactions').insertOne({
                 orderId,
-                userId: req.user.id,
-                description: '',
+                userId: req.user._id,
+                description: 'IN',
                 amount: trxAmount,
                 paymentType: 'topup',
                 paymentStatus: 'pending',
                 createdAt: new Date(),
                 updatedAt: new Date()
             })
-            res.json({ token: transaction.token, orderId })
+            res.json({ url: transaction.redirect_url, orderId })
         } catch (error) {
-            console.log(error)
+            console.error('Error:', error);
+            res.json({ message: error.message })
         }
 
     }
@@ -273,7 +307,6 @@ module.exports = class OrderModel {
                     authorization: "Basic " + "U0ItTWlkLXNlcnZlci13UEF5ZjJmUmcwZk4xUnNyYkd0V1dERDI6"
                 }
             })
-            console.log(await res.json());
 
             if (data.transaction_status === 'capture' && +data.status_code === 200) {
                 await getCollection('orders').updateOne(orderId, {
@@ -286,8 +319,8 @@ module.exports = class OrderModel {
                 res.status(400).json({ message: 'Transaction is not success' })
             }
         } catch (error) {
+            console.error('Error:', error);
             res.json({ message: error.message })
         }
     }
-
 }
