@@ -54,8 +54,9 @@ module.exports = class OrderModel {
     static async patchOrderServices(req, res) {
         try {
             const data = req.body
+        
 
-            let order = await getCollection('orders').findOne({ _id: new ObjectId(req.params.id) })
+            let order = await getCollection('orders').findOne({ _id: new ObjectId(req.params.param) })
 
             let services = order.servicesId.map((el,i) => {
                 return (
