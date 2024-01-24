@@ -74,7 +74,7 @@ class UserModel {
                 email: user.email
             })
 
-            return res.json({
+            res.json({
                 message: 'success login',
                 access_token: token
             })
@@ -125,9 +125,7 @@ class UserModel {
     }
 
 
-
-    //TODO GET USER PROVIDER
-    static async getUserById(req, res) {
+    static async getUserByIdMod(req,res){
         try {
             const user = await getCollection('users').aggregate(
                 [
@@ -212,10 +210,6 @@ class UserModel {
 
             saldoIn.length != 0 ? saldo = saldoIn[0]?.sum : saldo = 0
             saldoOut.length != 0 ? saldo = saldo - saldoOut[0]?.sum : saldo = saldo
-            res.json({
-                ...user[0],
-                saldo
-            })
             return {
                 ...user[0],
                 saldo
@@ -226,16 +220,93 @@ class UserModel {
             res.json({ message: error.message })
         }
     }
+    //TODO GET USER PROVIDER
+    static async getUserById(req, res) {
+        try {
+            const data = await UserModel.getUserByIdMod(req,res)
+            res.json(data)
+            
+           
+        } catch (error) {
+            console.error('Error:', error);
+            res.json({ message: error.message })
+        }
+    }
 
     static async userPayment(req, res) {
         try {
             const {totalAmount, orderId} = req.body
-            const user = await UserModel.getUserById(req,res)
-            // res.json(user);
-            console.log(user)
+            const user = await UserModel.getUserByIdMod(req,res)
+            
+            if (user.saldo < totalAmount) {
+                    res.status(400).json({message: 'Saldo not enough'})
+                    return
+            }
+            let transaction = {
+                    orderId : `TRX-au-${Math.random().toString()}`,
+                    userId : new ObjectId(req.user._id),
+                    description : "OUT",
+                    amount : totalAmount,
+                    paymentType : "Laundry",
+                    paymentStatus : "Completed",
+                    createdAt : new Date(),
+                    updatedAtAt : new Date()
+                  }
+
+            let order = await getCollection('orders').findOne({ _id: new ObjectId(orderId) })
+            
+            let patch = await getCollection('orders').updateOne({ _id: new ObjectId(orderId) }, { $set: { statusPay: "paid" } })
+            let tr = await getCollection('transactions').insertOne(transaction)
+
+            if (!patch.acknowledged) {
+                res.status(500).json({message: 'Internal Server Error'})
+            }
+            if (!tr.acknowledged) {
+                await getCollection('orders').updateOne({ _id: new ObjectId(orderId) }, { $set: { statusPay: "unpaid" } })
+            }
+            if (order.statusReceive) {
+                let tr = await getCollection('transactions').insertOne({
+                    ...transaction,
+                    description : "OUT",
+                    userId : new ObjectId(order.providerId),
+                })
+            }
+            res.status(200).json({message: 'Success'})
 
         } catch (error) {
-            console.error('Error:', error);
+            console.log(error);
+            res.json({ message: error.message }) 
+            // if (error.message) {
+                // console.log(error.message);
+            // }
+            // console.error('Error:', error);
+        }
+    }
+
+    static async userStatusReceive(req, res) {
+        try {
+            const {orderId} = req.body
+            const order = await getCollection('orders').findOne({ _id: new ObjectId(orderId) })
+
+            const patch = await getCollection('orders').updateOne({ _id: new ObjectId(orderId) }, { $set: { statusReceive: true } })
+            if (patch.acknowledged) {
+                if (order.statusPay == 'paid') {
+                    let tr = await getCollection('transactions').insertOne({
+                        orderId : `TRX-au-${Math.random().toString()}`,
+                        userId : new ObjectId(order.providerId),
+                        description : "IN",
+                        amount : order.totalAmount,
+                        paymentType : "Laundry",
+                        paymentStatus : "Completed",
+                        createdAt : new Date(),
+                        updatedAtAt : new Date()
+                      })
+            }
+                
+            }
+            res.json({message: 'Success'})
+        } catch (error) {
+            console.log(error);
             res.json({ message: error.message }) 
         }
     }

@@ -135,6 +135,7 @@ module.exports = class OrderModel {
 
     static async getByUserCustomerOrder(req, res) {
         try {
+            // await res.json('hehehe')
 
             const result = await getCollection('orders').aggregate(
                 [
@@ -151,7 +152,15 @@ module.exports = class OrderModel {
                         }
                     },{
                         '$sort': {
-                          'createdAt': 1
+                          'result._id': 1
+                        }
+                      },{
+                        '$sort': {
+                          'servicesId.servicesId': 1
+                        }
+                      },{
+                        '$sort': {
+                          'createdAt': -1
                         }
                       }
                 ]
@@ -168,7 +177,7 @@ module.exports = class OrderModel {
                     totalAmount
                 }
             })
-            await res.json(data)
+            res.json(data)
 
         } catch (error) {
             console.error('Error:', error);
@@ -275,7 +284,11 @@ module.exports = class OrderModel {
                         }
                     },{
                         '$sort': {
-                          'createdAt': 1
+                          'result._id': 1
+                        }
+                      },{
+                        '$sort': {
+                          'servicesId.servicesId': 1
                         }
                       }
                 ]
@@ -322,7 +335,7 @@ module.exports = class OrderModel {
                 },
                 "customer_details": {
                     "email": 'tes@mail.com'
-                }
+                },
             })
             // console.log(transaction);
 
@@ -330,7 +343,7 @@ module.exports = class OrderModel {
                 orderId,
                 userId: req.user._id,
                 description: 'IN',
-                amount: trxAmount,
+                amount: +trxAmount,
                 paymentType: 'topup',
                 paymentStatus: 'pending',
                 createdAt: new Date(),
@@ -342,7 +355,23 @@ module.exports = class OrderModel {
             console.error('Error:', error);
             res.json({ message: error.message })
         }
+    }
 
+    static async postPayment(req, res) {
+        try {
+            const {transaction_status, status_code, order_id} = req.body
+            if (transaction_status == 'capture', status_code ==200) {
+                await getCollection('transactions').updateOne({ orderId: order_id }, {
+                    $set: {
+                        paymentStatus: 'Completed',
+                        updatedAt: new Date()
+                    }
+                })
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            res.json({ message: error.message })
+        }
     }
 
     static async patchPayment(req, res) {
@@ -358,8 +387,8 @@ module.exports = class OrderModel {
                 }
             })
 
-            if (data.transaction_status === 'capture' && +data.status_code === 200) {
-                await getCollection('orders').updateOne(orderId, {
+            if (res.transaction_status === 'capture' && res.status_code == 200) {
+                await getCollection('transactions').updateOne(orderId, {
                     status: 'paid',
                     updatedAt: new Date()
                 })

@@ -24,12 +24,14 @@ app.use(cors())
 
 app.post('/users/register', UserModel.registerUser)
 app.post('/users/login', UserModel.loginUser)
+app.post('/payment/midtrans/initiate/cek', OrderModel.postPayment)
 
 app.use(authentication)
 
 //? USER CUSTOMER PROVIDER
 app.put('/users', UserModel.updateUser)
 app.patch('/users/payment', UserModel.userPayment)
+app.patch('/users/statusReceive', UserModel.userStatusReceive)
 app.get('/users/provider', UserModel.getUserById) //lookup transaction & outlet, ?order
 
 //? USER CUSTOMER
