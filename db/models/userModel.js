@@ -106,7 +106,15 @@ class UserModel {
 
             await getCollection('users').updateOne({ _id: req.user._id }, {
                 $set: {
-                    ...req.body,
+                    name : req.body.name,
+                    email : req.body.email,
+                    address : {
+                        street : req.body.address.street,
+                        village : req.body.address.village,
+                        distric : req.body.address.distric,
+                        city : req.body.address.city
+                    },
+                    phone : req.body.phone,
                     createdAt: new Date(),
                     updatedAt: new Date()
                 }

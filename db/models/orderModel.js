@@ -56,7 +56,7 @@ module.exports = class OrderModel {
             const data = req.body
 
             let order = await getCollection('orders').findOne({ _id: new ObjectId(req.params.id) })
-            let services = order.servicesId.map((el,i) => {
+            let services = order.servicesId.map((el, i) => {
                 return (
                     {
                         servicesId: el.servicesId,
@@ -64,7 +64,6 @@ module.exports = class OrderModel {
                     }
                 )
             })
-            console.log(services);
             order = {
                 ...order,
                 servicesId: services
@@ -152,9 +151,9 @@ module.exports = class OrderModel {
 
             let data = result.map(el => {
                 let totalAmount = 0
-            for (let i = 0; i < el.servicesId.length; i++) {
-                totalAmount += (el.result[i].price * el.servicesId[i].qty)
-            }
+                for (let i = 0; i < el.servicesId.length; i++) {
+                    totalAmount += (el.result[i].price * el.servicesId[i].qty)
+                }
                 return {
                     ...el,
                     totalAmount
@@ -292,7 +291,7 @@ module.exports = class OrderModel {
             })
 
             const orderId = `TRX-au-${Math.random().toString()}`
-            const trxAmount = 5000
+            const trxAmount = req.body.amount
             const transaction = await snap.createTransaction({
                 "transaction_details": {
                     "order_id": orderId,
