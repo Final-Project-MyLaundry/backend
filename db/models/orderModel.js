@@ -5,7 +5,7 @@ const midtransClient = require('midtrans-client')
 module.exports = class OrderModel {
     static async postOrder(req, res) { //customer
         try {
-            const {isChecked, notes} = req.body //notes, services
+            const { isChecked, notes } = req.body //notes, services
             let inpServices = []
 
             let outlet = await getCollection('outlets').findOne({ _id: new ObjectId(req.params.id) })
@@ -41,7 +41,7 @@ module.exports = class OrderModel {
 
     static async patchOrderProgress(req, res) {
         try {
-            const {progress} = req.body
+            const { progress } = req.body
             let patch = await getCollection('orders').updateOne({ _id: new ObjectId(req.params.id) }, { $set: { progress } })
 
             patch.acknowledged && res
@@ -99,11 +99,11 @@ module.exports = class OrderModel {
                             'foreignField': '_id',
                             'as': 'result'
                         }
-                    },{
+                    }, {
                         '$sort': {
-                          'createdAt': 1
+                            'createdAt': 1
                         }
-                      }
+                    }
                 ]
             ).toArray())[0]
 
@@ -150,33 +150,50 @@ module.exports = class OrderModel {
                             'foreignField': '_id',
                             'as': 'result'
                         }
-                    },{
+                    }, {
                         '$sort': {
-                          'result._id': 1
+                            'result._id': 1
                         }
-                      },{
+                    }, {
                         '$sort': {
-                          'servicesId.servicesId': 1
+                            'servicesId.servicesId': 1
                         }
-                      },{
+                    }, {
                         '$sort': {
-                          'createdAt': -1
+                            'createdAt': -1
                         }
-                      }
+                    }
                 ]
             ).toArray()
-            // console.log(result[0].servicesId[0]);
 
+            // let data = result.map(el => {
+            //     let totalAmount = 0
+            //     for (let i = 0; i < el.servicesId.length; i++) {
+            //         totalAmount += (el.result[i].price * el.servicesId[i].qty)
+            //     }
+            //     return {
+            //         ...el,
+            //         totalAmount
+            //     }
+            // })
             let data = result.map(el => {
-                let totalAmount = 0
-                for (let i = 0; i < el.servicesId.length; i++) {
-                    totalAmount += (el.result[i].price * el.servicesId[i].qty)
-                }
+                let totalAmount = 0;
+    
+                // Menghitung totalAmount untuk setiap layanan dalam order
+                el.servicesId.forEach(service => {
+                    const matchedService = el.result.find(resultService => resultService._id.equals(service.servicesId));
+                    if (matchedService) {
+                        totalAmount += (matchedService.price * service.qty);
+                    }
+                });
+    
+                // Menambahkan totalAmount ke dalam objek order
                 return {
                     ...el,
                     totalAmount
-                }
-            })
+                };
+            });
+            // console.log(data);
             res.json(data)
 
         } catch (error) {
@@ -216,11 +233,11 @@ module.exports = class OrderModel {
                             '$set': {
                                 'outlet': '$outlet.name'
                             }
-                        },{
+                        }, {
                             '$sort': {
-                              'createdAt': 1
+                                'createdAt': 1
                             }
-                          }
+                        }
                     ]
                 ).toArray()
                 res.json(data)
@@ -247,11 +264,11 @@ module.exports = class OrderModel {
                             '$set': {
                                 'outlet': '$outlet.name'
                             }
-                        },{
+                        }, {
                             '$sort': {
-                              'createdAt': 1
+                                'createdAt': 1
                             }
-                          }
+                        }
                     ]
                 ).toArray()
                 res.json(data)
@@ -282,32 +299,40 @@ module.exports = class OrderModel {
                             'foreignField': '_id',
                             'as': 'result'
                         }
-                    },{
+                    }, {
                         '$sort': {
-                          'result._id': 1
+                            'result._id': 1
                         }
-                      },{
+                    }, {
                         '$sort': {
-                          'servicesId.servicesId': 1
+                            'servicesId.servicesId': 1
                         }
-                      }
+                    }
                 ]
             ).toArray())[0]
 
-            let totalAmount = 0
-            let services = []
-            for (let i = 0; i < data.servicesId.length; i++) {
-                totalAmount += (data.result[i].price * data.servicesId[i].qty)
-                services.push({
-                    name: data.result[i].name,
-                    qty: data.servicesId[i].qty
-                })
-            }
+            const calculateTotalPrice = (qty, price) => qty * price;
+
+            let totalPrice = 0
+            const resultWithTotalPrice = data.result.map(service => {
+
+                totalPrice +=  calculateTotalPrice(
+                    data.servicesId.find(s => s.servicesId.equals(service._id)).qty,
+                    service.price
+                    )
+                    
+                    return {
+                        qty: data.servicesId.find(s => s.servicesId.equals(service._id)).qty,
+                        name : service.name
+                    }
+              });
+              
+
 
             await res.json({
                 ...data,
-                totalAmount,
-                servicesId: services
+                totalAmount: totalPrice,
+                servicesId: resultWithTotalPrice
             })
 
         } catch (error) {
@@ -359,8 +384,8 @@ module.exports = class OrderModel {
 
     static async postPayment(req, res) {
         try {
-            const {transaction_status, status_code, order_id} = req.body
-            if (transaction_status == 'capture', status_code ==200) {
+            const { transaction_status, status_code, order_id } = req.body
+            if (transaction_status == 'capture', status_code == 200) {
                 await getCollection('transactions').updateOne({ orderId: order_id }, {
                     $set: {
                         paymentStatus: 'Completed',

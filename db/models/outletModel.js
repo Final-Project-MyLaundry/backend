@@ -14,23 +14,12 @@ module.exports = class OutletModel {
     try {
       const { filter, nearby } = req.body
       // console.log(req.body);
-
+console.log(nearby);
       let query = {
         statusOpen: true
       }
       if (nearby) {
-        query = {
-          ...query,
-          location: {
-            $near: {
-              $maxDistance: 500,
-              $geometry: {
-                type: "Point",
-                coordinates: [parseFloat(nearby.longitude), parseFloat(nearby.latitude)]
-              }
-            }
-          }
-        }
+        
       }
       let agg = [
         {
@@ -52,6 +41,13 @@ module.exports = class OutletModel {
         agg.push({
           '$match': {
             'services.name': new RegExp(filter, 'i')
+          }
+        })
+      }
+      if (nearby) {
+        agg.push({
+          '$match': {
+            'address.village': new RegExp(nearby, 'i')
           }
         })
       }
@@ -165,7 +161,9 @@ module.exports = class OutletModel {
         userId: new ObjectId(req.user._id),
         image: 'https://i.pinimg.com/474x/bf/08/e3/bf08e3b80f893f99d423b7546ba6c24a.jpg',
         reviews: [],
-        statusOpen: false
+        statusOpen: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       const addOutlet = await getCollection('outlets').insertOne(input)

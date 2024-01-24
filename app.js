@@ -63,7 +63,6 @@ app.delete('/outlets/:id', OutletModel.deleteOutlet)
 app.get('/orders/customer', OrderModel.getByUserCustomerOrder)
 app.patch('/orders/statusReceive/:id',OrderModel.patchOrderReceive)
 
-
 //? USER PROVIDER
 app.get('/orders/provider/:param', OrderModel.getByUserProviderOrder)
 app.patch('/orders/provider/:id', OrderModel.patchOrderServices)
