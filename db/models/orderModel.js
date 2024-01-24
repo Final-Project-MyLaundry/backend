@@ -56,16 +56,14 @@ module.exports = class OrderModel {
             const data = req.body
 
             let order = await getCollection('orders').findOne({ _id: new ObjectId(req.params.id) })
-
-            let services = order.servicesId.map((el,i) => {
+            let services = order.servicesId.map((el, i) => {
                 return (
                     {
-                        servicesId: new ObjectId(el.servicesId[i]),
+                        servicesId: el.servicesId,
                         qty: data[i]
                     }
                 )
             })
-
             order = {
                 ...order,
                 servicesId: services
@@ -73,7 +71,7 @@ module.exports = class OrderModel {
 
             delete order._id
 
-            let patch = await getCollection('orders').updateOne({ _id: new ObjectId(req.params.id) }, { $set: { order } })
+            let patch = await getCollection('orders').replaceOne({ _id: new ObjectId(req.params.id) }, order)
 
             patch.acknowledged && res
                 .json({ message: 'success patch progress' })
@@ -153,9 +151,9 @@ module.exports = class OrderModel {
 
             let data = result.map(el => {
                 let totalAmount = 0
-            for (let i = 0; i < el.servicesId.length; i++) {
-                totalAmount += (el.result[i].price * el.servicesId[i].qty)
-            }
+                for (let i = 0; i < el.servicesId.length; i++) {
+                    totalAmount += (el.result[i].price * el.servicesId[i].qty)
+                }
                 return {
                     ...el,
                     totalAmount
@@ -293,7 +291,7 @@ module.exports = class OrderModel {
             })
 
             const orderId = `TRX-au-${Math.random().toString()}`
-            const trxAmount = 5000
+            const trxAmount = req.body.amount
             const transaction = await snap.createTransaction({
                 "transaction_details": {
                     "order_id": orderId,
