@@ -91,17 +91,11 @@ class UserModel {
     static async updateUser(req, res) {
         try {
             if (!req.body.name) throw Error('name is required')
-
             if (!req.body.email) throw Error('email is required')
-
             if (!req.body.address.street) throw Error('street is required')
-
             if (!req.body.address.village) throw Error('village is required')
-
             if (!req.body.address.distric) throw Error('distric is required')
-
             if (!req.body.address.city) throw Error('city is required')
-
             if (!req.body.phone) throw Error('phone is required')
 
             await getCollection('users').updateOne({ _id: req.user._id }, {
@@ -218,14 +212,31 @@ class UserModel {
 
             saldoIn.length != 0 ? saldo = saldoIn[0]?.sum : saldo = 0
             saldoOut.length != 0 ? saldo = saldo - saldoOut[0]?.sum : saldo = saldo
-
-            await res.json({
+            res.json({
                 ...user[0],
                 saldo
             })
+            return {
+                ...user[0],
+                saldo
+            }
+           
         } catch (error) {
             console.error('Error:', error);
             res.json({ message: error.message })
+        }
+    }
+
+    static async userPayment(req, res) {
+        try {
+            const {totalAmount, orderId} = req.body
+            const user = await UserModel.getUserById(req,res)
+            // res.json(user);
+            console.log(user)
+
+        } catch (error) {
+            console.error('Error:', error);
+            res.json({ message: error.message }) 
         }
     }
 }

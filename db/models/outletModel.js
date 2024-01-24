@@ -96,6 +96,7 @@ module.exports = class OutletModel {
               'foreignField': 'outletId',
               'as': 'services'
             },
+          }, {
             '$lookup': {
               'from': 'users',
               'localField': 'reviews.userId',

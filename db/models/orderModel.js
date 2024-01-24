@@ -5,26 +5,27 @@ const midtransClient = require('midtrans-client')
 module.exports = class OrderModel {
     static async postOrder(req, res) { //customer
         try {
-            const data = req.body //notes, services
+            const {isChecked, notes} = req.body //notes, services
+            let inpServices = []
 
-            if (data.servicesId?.length == 0) throw Error('services is required')
-
-            let inpServices = data.servicesId.map(el => {
-                return {
-                    servicesId: new ObjectId(el),
-                    qty: 0,
-                }
-            })
-
+            let outlet = await getCollection('outlets').findOne({ _id: new ObjectId(req.params.id) })
+            for (const key in isChecked) {
+                inpServices.push({
+                    servicesId: new ObjectId(key),
+                    qty: 0
+                })
+            }
             let input = {
-                ...data,
-                userId: new ObjectId(req.user._id),
+                notes,
+                customerId: new ObjectId(req.user._id),
+                providerId: new ObjectId(outlet.userId),
                 outletId: new ObjectId(req.params.id),
                 servicesId: [
                     ...inpServices,
                 ],
-                progress: 'waiting',
+                progress: 'Waiting',
                 statusReceive: false,
+                statusPay: 'unpaid',
                 createdAt: new Date(),
                 updatedAt: new Date(),
             }
@@ -40,8 +41,8 @@ module.exports = class OrderModel {
 
     static async patchOrderProgress(req, res) {
         try {
-            const data = req.body
-            let patch = await getCollection('orders').updateOne({ _id: new ObjectId(req.params.id) }, { $set: { progress: data } })
+            const {progress} = req.body
+            let patch = await getCollection('orders').updateOne({ _id: new ObjectId(req.params.id) }, { $set: { progress } })
 
             patch.acknowledged && res
                 .json({ message: 'success patch progress' })
@@ -98,7 +99,11 @@ module.exports = class OrderModel {
                             'foreignField': '_id',
                             'as': 'result'
                         }
-                    }
+                    },{
+                        '$sort': {
+                          'createdAt': 1
+                        }
+                      }
                 ]
             ).toArray())[0]
 
@@ -144,7 +149,11 @@ module.exports = class OrderModel {
                             'foreignField': '_id',
                             'as': 'result'
                         }
-                    }
+                    },{
+                        '$sort': {
+                          'createdAt': 1
+                        }
+                      }
                 ]
             ).toArray()
             // console.log(result[0].servicesId[0]);
@@ -159,8 +168,7 @@ module.exports = class OrderModel {
                     totalAmount
                 }
             })
-
-            res.json(data)
+            await res.json(data)
 
         } catch (error) {
             console.error('Error:', error);
@@ -171,7 +179,7 @@ module.exports = class OrderModel {
     static async getByUserProviderOrder(req, res) {
         try {
             const { param } = req.params
-            if (param == 'waiting') {
+            if (param == 'Waiting') {
                 const data = await getCollection('orders').aggregate(
                     [
                         {
@@ -180,7 +188,7 @@ module.exports = class OrderModel {
                                     {
                                         'providerId': new ObjectId(req.user._id)
                                     }, {
-                                        'progress': 'waiting'
+                                        'progress': 'Waiting'
                                     }
                                 ]
                             }
@@ -199,7 +207,11 @@ module.exports = class OrderModel {
                             '$set': {
                                 'outlet': '$outlet.name'
                             }
-                        }
+                        },{
+                            '$sort': {
+                              'createdAt': 1
+                            }
+                          }
                     ]
                 ).toArray()
                 res.json(data)
@@ -226,7 +238,11 @@ module.exports = class OrderModel {
                             '$set': {
                                 'outlet': '$outlet.name'
                             }
-                        }
+                        },{
+                            '$sort': {
+                              'createdAt': 1
+                            }
+                          }
                     ]
                 ).toArray()
                 res.json(data)
@@ -257,7 +273,11 @@ module.exports = class OrderModel {
                             'foreignField': '_id',
                             'as': 'result'
                         }
-                    }
+                    },{
+                        '$sort': {
+                          'createdAt': 1
+                        }
+                      }
                 ]
             ).toArray())[0]
 

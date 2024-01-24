@@ -29,6 +29,7 @@ app.use(authentication)
 
 //? USER CUSTOMER PROVIDER
 app.put('/users', UserModel.updateUser)
+app.patch('/users/payment', UserModel.userPayment)
 app.get('/users/provider', UserModel.getUserById) //lookup transaction & outlet, ?order
 
 //? USER CUSTOMER
@@ -55,7 +56,6 @@ app.patch('/outlets/:id',upload.single('image'), OutletModel.patchOutletImage)
 app.delete('/outlets/:id', OutletModel.deleteOutlet)
 
 //TODO ORDER
-
 
 //? USER CUSTOMER
 app.get('/orders/customer', OrderModel.getByUserCustomerOrder)
