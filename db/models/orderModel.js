@@ -99,10 +99,6 @@ module.exports = class OrderModel {
                             'foreignField': '_id',
                             'as': 'result'
                         }
-                    }, {
-                        '$sort': {
-                            'createdAt': 1
-                        }
                     }
                 ]
             ).toArray())[0]
@@ -150,36 +146,13 @@ module.exports = class OrderModel {
                             'foreignField': '_id',
                             'as': 'result'
                         }
-                    }, {
-                        '$sort': {
-                            'result._id': 1
-                        }
-                    }, {
-                        '$sort': {
-                            'servicesId.servicesId': 1
-                        }
-                    }, {
-                        '$sort': {
-                            'createdAt': -1
-                        }
-                    }
+                    }, 
                 ]
             ).toArray()
 
-            // let data = result.map(el => {
-            //     let totalAmount = 0
-            //     for (let i = 0; i < el.servicesId.length; i++) {
-            //         totalAmount += (el.result[i].price * el.servicesId[i].qty)
-            //     }
-            //     return {
-            //         ...el,
-            //         totalAmount
-            //     }
-            // })
             let data = result.map(el => {
                 let totalAmount = 0;
     
-                // Menghitung totalAmount untuk setiap layanan dalam order
                 el.servicesId.forEach(service => {
                     const matchedService = el.result.find(resultService => resultService._id.equals(service.servicesId));
                     if (matchedService) {
@@ -187,12 +160,12 @@ module.exports = class OrderModel {
                     }
                 });
     
-                // Menambahkan totalAmount ke dalam objek order
                 return {
                     ...el,
                     totalAmount
                 };
             });
+            // console.log(data);
             // console.log(data);
             res.json(data)
 
@@ -233,10 +206,6 @@ module.exports = class OrderModel {
                             '$set': {
                                 'outlet': '$outlet.name'
                             }
-                        }, {
-                            '$sort': {
-                                'createdAt': 1
-                            }
                         }
                     ]
                 ).toArray()
@@ -263,10 +232,6 @@ module.exports = class OrderModel {
                         }, {
                             '$set': {
                                 'outlet': '$outlet.name'
-                            }
-                        }, {
-                            '$sort': {
-                                'createdAt': 1
                             }
                         }
                     ]
@@ -303,10 +268,6 @@ module.exports = class OrderModel {
                         '$sort': {
                             'result._id': 1
                         }
-                    }, {
-                        '$sort': {
-                            'servicesId.servicesId': 1
-                        }
                     }
                 ]
             ).toArray())[0]
@@ -322,11 +283,11 @@ module.exports = class OrderModel {
                     )
                     
                     return {
+                        name : service.name,
                         qty: data.servicesId.find(s => s.servicesId.equals(service._id)).qty,
-                        name : service.name
                     }
               });
-              
+            //   console.log(data);
 
 
             await res.json({

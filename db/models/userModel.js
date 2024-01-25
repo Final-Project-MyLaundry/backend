@@ -246,14 +246,14 @@ class UserModel {
                     orderId : `TRX-au-${Math.random().toString()}`,
                     userId : new ObjectId(req.user._id),
                     description : "OUT",
-                    amount : totalAmount,
+                    amount : +totalAmount,
                     paymentType : "Laundry",
                     paymentStatus : "Completed",
                     createdAt : new Date(),
                     updatedAtAt : new Date()
                   }
 
-            let order = await getCollection('orders').findOne({ _id: new ObjectId(orderId) })
+            const order = await getCollection('orders').findOne({ _id: new ObjectId(orderId) })
             
             let patch = await getCollection('orders').updateOne({ _id: new ObjectId(orderId) }, { $set: { statusPay: "paid" } })
             let tr = await getCollection('transactions').insertOne(transaction)
@@ -265,10 +265,15 @@ class UserModel {
                 await getCollection('orders').updateOne({ _id: new ObjectId(orderId) }, { $set: { statusPay: "unpaid" } })
             }
             if (order.statusReceive) {
-                let tr = await getCollection('transactions').insertOne({
-                    ...transaction,
-                    description : "OUT",
-                    userId : new ObjectId(order.providerId),
+                await getCollection('transactions').insertOne({
+                    orderId : `TRX-au-${Math.random().toString()}`,
+                    userId : order.providerId,
+                    description : "IN",
+                    amount : +totalAmount,
+                    paymentType : "Laundry",
+                    paymentStatus : "Completed",
+                    createdAt : new Date(),
+                    updatedAtAt : new Date()
                 })
             }
             res.status(200).json({message: 'Success'})
@@ -289,21 +294,21 @@ class UserModel {
             const order = await getCollection('orders').findOne({ _id: new ObjectId(orderId) })
 
             const patch = await getCollection('orders').updateOne({ _id: new ObjectId(orderId) }, { $set: { statusReceive: true } })
-            if (patch.acknowledged) {
-                if (order.statusPay == 'paid') {
-                    let tr = await getCollection('transactions').insertOne({
-                        orderId : `TRX-au-${Math.random().toString()}`,
-                        userId : new ObjectId(order.providerId),
-                        description : "IN",
-                        amount : order.totalAmount,
-                        paymentType : "Laundry",
-                        paymentStatus : "Completed",
-                        createdAt : new Date(),
-                        updatedAtAt : new Date()
-                      })
-            }
+            // if (patch.acknowledged) {
+            //     if (order.statusPay == 'paid') {
+            //         let tr = await getCollection('transactions').insertOne({
+            //             orderId : `TRX-au-${Math.random().toString()}`,
+            //             userId : new ObjectId(order.providerId),
+            //             description : "IN",
+            //             amount : +order.totalAmount,
+            //             paymentType : "Laundry",
+            //             paymentStatus : "Completed",
+            //             createdAt : new Date(),
+            //             updatedAtAt : new Date()
+            //           })
+            // }
                 
-            }
+            // }
             res.json({message: 'Success'})
         } catch (error) {
             console.log(error);

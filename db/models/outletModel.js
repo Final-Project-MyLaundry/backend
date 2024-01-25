@@ -14,12 +14,9 @@ module.exports = class OutletModel {
     try {
       const { filter, nearby } = req.body
       // console.log(req.body);
-console.log(nearby);
+      // console.log(filter,nearby);
       let query = {
         statusOpen: true
-      }
-      if (nearby) {
-        
       }
       let agg = [
         {
@@ -37,13 +34,14 @@ console.log(nearby);
         }
       ]
 
-      if (filter) {
+      if (filter != "All") {
         agg.push({
           '$match': {
             'services.name': new RegExp(filter, 'i')
           }
         })
       }
+
       if (nearby) {
         agg.push({
           '$match': {
